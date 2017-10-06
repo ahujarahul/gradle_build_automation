@@ -1,0 +1,222 @@
+apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+
+
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+}
+
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'https://maven.fabric.io/public' }
+    }
+    dependencies {
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
+
+android {
+    signingConfigs {
+        debug {
+            storeFile file("../dmi_keystore/dmi_debug.keystore")
+        }
+    }
+
+    def versionPropsFile = file('version.properties')
+
+    if (versionPropsFile.canRead()) {
+        def Properties versionProps = new Properties()
+
+        versionProps.load(new FileInputStream(versionPropsFile))
+
+        def versionCodePreProd = versionProps['versionCodePreProd']
+        def versionNamePreProd = versionProps['versionNamePreProd']
+
+        def versionCodeUAT = versionProps['versionCodeUAT']
+        def versionNameUAT = versionProps['versionNameUAT']
+
+        def versionCodeSIT = versionProps['versionCodeSIT']
+        def versionNameSIT = versionProps['versionNameSIT']
+
+        def versionCodeProduction = versionProps['versionCodePRODUCTION'].toInteger()
+        def versionNameProduction = versionProps['versionNamePRODUCTION']
+
+        compileSdkVersion 25
+        buildToolsVersion "25.0.0"
+        defaultConfig {
+            applicationId "com.softcell.gonogo"
+            minSdkVersion 15
+            targetSdkVersion 25
+//            versionCode versionCodeProduction
+            versionName ""
+            testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+            applicationVariants.all { variant ->
+                if (variant.buildType.name == 'debugSIT') {
+                    variant.mergedFlavor.versionCode = versionCodeSIT as int;
+                }else if (variant.buildType.name == 'debugUAT'){
+                    variant.mergedFlavor.versionCode = versionCodeUAT as int;
+                }else if (variant.buildType.name == 'debugPreProd'){
+                    variant.mergedFlavor.versionCode = versionCodePreProd as int;
+                }else if (variant.buildType.name == 'debugProduction'){
+                    variant.mergedFlavor.versionCode = versionCodeProduction as int;
+                }else {
+                    variant.mergedFlavor.versionCode = -1;
+                }
+            }
+        }
+
+
+        packagingOptions {
+            exclude 'META-INF/DEPENDENCIES'
+            exclude 'META-INF/NOTICE'
+            exclude 'META-INF/LICENSE'
+            exclude 'META-INF/LICENSE.txt'
+            exclude 'META-INF/NOTICE.txt'
+        }
+
+        buildTypes {
+            debugUAT.initWith(buildTypes.debug)
+            debugProduction.initWith(buildTypes.debug)
+            debugPreProd.initWith(buildTypes.debug)
+            debugSIT.initWith(buildTypes.debug)
+
+            releaseUAT.initWith(buildTypes.release)
+            releaseProduction.initWith(buildTypes.release)
+
+            debug {
+                minifyEnabled true
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            }
+
+            release {
+                minifyEnabled true
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            }
+
+            releaseUAT {
+//                buildConfigField "String", "BASE_URL", "\"http://gng.softcell.in/GoNoGo/\""
+            }
+
+            debugUAT {
+                //versionNameSuffix " UAT"
+                versionNameSuffix "${versionNameUAT+" UAT"}"
+//                buildConfigField("String", "APP_VERSION_NAME", "\"${versionNameUAT+" UAT"}\"")
+//                buildConfigField("int", "APP_VERSION_CODE", versionCodeUAT)
+//                buildConfigField "String", "BASE_URL", "\"http://gng.softcell.in/GoNoGo/\""
+            }
+
+            debugProduction {
+                versionNameSuffix versionNameProduction
+                buildConfigField "String", "BASE_URL", "\"https://api.serviceurl.in/gonogo/inst/dmi/\""
+            }
+
+            debugPreProd {
+                versionNameSuffix "${versionNamePreProd+" Pre_PROD"}"
+//                buildConfigField("String", "APP_VERSION_NAME", "\"${versionNamePreProd+" Pre_PROD"}\"")
+//                buildConfigField("int", "APP_VERSION_CODE", versionCodePreProd)
+                buildConfigField "String", "BASE_URL", "\"http://gng.softcell.in/gonogo-dmi-preprod/\""
+            }
+
+            debugSIT {
+                versionNameSuffix "${versionNameSIT+" SIT"}"
+//                buildConfigField("String", "APP_VERSION_NAME", "\"${versionNameSIT+" SIT"}\"").
+//                buildConfigField("int", "APP_VERSION_CODE", versionCodeSIT)
+                buildConfigField "String", "BASE_URL", "\"http://gng.softcell.in/sit/gonogo/\""
+            }
+
+//            releaseProduction {
+//                buildConfigField "String", "BASE_URL", "\"https://api.serviceurl.in/gonogo/\""
+//            }
+
+//            applicationVariants.all { variant ->
+//                variant.outputs.each { output ->
+//                    output.outputFile = new File(
+//                            output.outputFile.parent,
+//                            output.outputFile.name.replace(".apk", "-${variant.versionName}.apk"))
+//                }
+//            }
+
+            android.variantFilter { variant ->
+                if (variant.buildType.name.equals('release') || variant.buildType.name.equals('debug') ||
+                        variant.getFlavors().get(0).name.equals('hdbfsDebug') ||
+                        variant.getFlavors().get(0).name.equals('allFunctionlityDebug') ||
+                        variant.getFlavors().get(0).name.equals('dmiDebug')) {
+                    variant.setIgnore(true);
+                }
+            }
+        }
+
+        productFlavors {
+            hdbfs {
+                applicationIdSuffix ".hdbfs"
+                buildConfigField "String", "APP_SOURCE_ID", "\"GONOGO_HDBFS\""
+            }
+
+            allFunctionlity {
+                applicationIdSuffix ".demo"
+                buildConfigField "String", "APP_SOURCE_ID", "\"GONOGO_DEMO\""
+            }
+
+            dmi {
+                //versionCode versionCodeUAT
+                //versionName versionNameUAT
+                applicationIdSuffix ".dmi"
+                buildConfigField "String", "APP_SOURCE_ID", "\"GONOGO_DMI\""
+                //buildConfigField "String", "BASE_URL", "\"http://gng.softcell.in/gonogo-dmi-preprod/\""
+                buildConfigField "String", "BASE_URL", "\"http://gng.softcell.in/gonogo/\""
+                //buildConfigField "String", "BASE_URL", "\"http://gng.softcell.in/sit/gonogo-dmi/\""
+                //buildConfigField "String", "BASE_URL", "\"http://172.26.1.205:8081/gonogo/\""
+            }
+        }
+        sourceSets {
+            hdbfs {
+                assets.srcDirs = ['src/hdbfs/assets', 'src/hdbfs/assets/']
+                res.srcDirs = ['src/hdbfs/res', 'src/hdbfs/res/']
+            }
+            dmi {
+                assets.srcDirs = ['src/dmi/assets', 'src/dmi/assets/']
+                res.srcDirs = ['src/dmi/res', 'src/dmi/res/']
+            }
+        }
+
+    } else {
+        throw new GradleException("Could not read version.properties!")
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    androidTestCompile('com.android.support.test:runner:0.4.1') {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    }
+
+
+
+    compile project(':soutilities')
+
+
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.6@aar') {
+        transitive = true;
+    }
+    compile 'com.android.support:design:25.0.1'
+    compile 'com.jakewharton:butterknife:8.4.0'
+    compile 'com.android.support:support-v4:25.0.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha4'
+    androidTestCompile 'org.mockito:mockito-core:1.10.19'
+    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+    androidTestCompile 'junit:junit:4.12'
+    androidTestCompile 'com.android.support:support-annotations:23.4.0'
+    androidTestCompile 'com.android.support.test:runner:0.5'
+    androidTestCompile 'com.android.support.test:rules:0.5'
+    androidTestCompile 'com.android.support.test.espresso:espresso-intents:2.2.2'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
+}
