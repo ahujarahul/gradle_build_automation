@@ -15,7 +15,7 @@ So, when switching between projects it is confusing which build to choose 😥 �
 *When leaving office at EOD* "Hey developer! you know the commands, please give me production build of this project.", says the manager. Well not any more. He has access to the repo and your CLI tool. 😊 peace ✌🏽
 
 **3. Typos when typing commands:**
-We are developers. Typos is in our DNA. But that's not an excuse when typing commands.. type that command again! 😒😏 Okay!
+We are developers. Typos are in our DNA. But that's not an excuse when typing commands.. type that command again! 😒😏 Okay!
 
 
 I am sure after all this you will not need anything more to agree upon! 😊
