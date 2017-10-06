@@ -19,3 +19,5 @@ We are developers. Typos are in our DNA. But that's not an excuse when typing co
 
 
 I am sure after all this you will not need anything more to agree upon! 😊
+
+Just a small To-Do : Open .c file and modify paths and build variants according to your project. Compile it and voila! you are good to go 😊
